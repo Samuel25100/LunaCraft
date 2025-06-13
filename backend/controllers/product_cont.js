@@ -3,26 +3,8 @@ const Products = require("../models/products_db");
 const jwt = require("jsonwebtoken");
 const uuidv4 = require("uuid");
 
-export default class Products_con {
+class Products_con {
     
-    static async get_product(req, res) {
-        const id = req.params.id;
-        const prod = Products.findOne({ id });
-        if (prod) {
-            res.status(200).json({
-                "name": prod.name,
-                "description": prod.description,
-                "price": prod.price,
-                "category": prod.category,
-                "material": prod.material,
-                "image": prod.image,
-                "stock": prod.stock
-            });
-            return;
-        }
-        res.status(401).json({"message": "Wrong product id"});
-    }
-
     static async add_product(req, res) {
         const { name, description,
                 price, category, 
@@ -44,12 +26,33 @@ export default class Products_con {
             return;
         }
         try {
-            const id = uuidv4.v4().toString();
-            await Products.create({ id, name, description,
+            const prodId = uuidv4.v4().toString();
+            const userId = req.userId;
+            const product = await Products.create({ prodId, userId, name, description,
                 price, category, material, stock, image});
+            res.status(201).json({"message": "success", product});
+            return;
         } catch (err){
             console.error("In adding product: ",err);
         }
+    }
+
+    static async get_product(req, res) {
+        const id = req.params.id;
+        const prod = Products.findOne({ userId: id });
+        if (prod) {
+            res.status(200).json({
+                "name": prod.name,
+                "description": prod.description,
+                "price": prod.price,
+                "category": prod.category,
+                "material": prod.material,
+                "image": prod.image,
+                "stock": prod.stock
+            });
+            return;
+        }
+        res.status(401).json({"message": "Wrong product id"});
     }
 
     static async update_prod(req, res) {
@@ -89,3 +92,5 @@ export default class Products_con {
         
     }
 }
+
+module.exports = Products_con;

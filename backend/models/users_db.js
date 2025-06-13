@@ -2,7 +2,7 @@ const mogoose = require("mongoose");
 
 const usersh = new mogoose.Schema(
     {
-        "id": { type: String, required: true},
+        "userId": { type: String, required: true},
         "name": { type: String, required: true},
         "pwd": { type: String, required: true},
         "email": { type: String, required: true},
