@@ -8,12 +8,10 @@ function jwt_auth(req, res, next) {
         res.status(401).json({"message": "Token missing"});
         return;
     }
-    console.log("token", token);
-    console.log(token == process.env.ACCESS_TOKEN);
 
     jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
         if (err) {
-            res.status(403).json({"message": "Unathorize token"});
+            res.status(403).json({"message": "Unathorize token in jwt_auth"});
             return;
         }
         req.userId = user.userId;

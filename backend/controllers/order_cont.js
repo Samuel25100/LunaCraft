@@ -1,7 +1,6 @@
 const Users = require("../models/users_db");
 const Orders = require("../models/order_db");
 const Products = require("../models/products_db");
-const jwt = require("jsonwebtoken");
 const uuidv4 = require("uuid");
 
 class Order {
@@ -9,8 +8,9 @@ class Order {
     static async add_order(req, res){
         const userId = req.userId;
         const { items, total, status } = req.body;
-        if (items && total && status) {
+        if (!items && !total) {
             res.status(401).json({"message": "Missing information"});
+            return;
         }
         try {
             const orderId = uuidv4.v4();
@@ -19,6 +19,9 @@ class Order {
                 "customerId": userId, 
                 items, total, status
             });
+
+            /*  Add here the stock changer to each product  */
+            
             res.status(201).json({"message": "success", product});
             return;
         } catch(err) {
@@ -28,8 +31,21 @@ class Order {
         }
     }
 
+    static async get_orders(req, res) {
+        const orderId = req.params.id;
+        try {
+            const orders = await Orders.find({ orderId });
+            res.status(200).json({ ...orders });
+            return;
+        } catch (err) {
+            console.error("Error in getting all orders:", err);
+            res.status(401);
+            return;
+        }
+    }
+
     static async cancle_order(req, res) {
-        const orderId = req.params.orderId;
+        const orderId = req.params.id;
         const order = await Orders.findOne({orderId});
         if (!order) {
             res.status(404).json({"message": "Order not found"});
@@ -39,7 +55,7 @@ class Order {
             const userId = req.userId;
             if (userId === order.customerId) {
                 if (order.status === "pending") {
-                    await Orders.deleteOne({customerId});
+                    await Orders.deleteOne({orderId});
                     res.status(201).json({"message": "Success"});
                     return;
                 }
@@ -49,7 +65,7 @@ class Order {
             res.status(409).json({"message": "Not authorize to cancle"});
             return;
         } catch (err) {
-            console.err("Error in deleting order: ", err);
+            console.error("Error in deleting order: ", err);
             res.status(409).json({"message": "Error in cancling order"});
             return;
         }
@@ -65,8 +81,8 @@ class Order {
         try {
             const status_typ = ['pending', 'shipped', 'delivered'];
             if (status_typ.indexOf(status) !== -1 ) {
-                await Order.findByIdAndUpdate(orderId, { status });
-                res.status(201).json({"message": "Status updated to ",status});
+                await Orders.updateOne({ orderId }, {$set: { status } });
+                res.status(201).json({"message": "Status updated", status});
                 return;
             }
             res.status(409).json({"message": "Adding not allowed status value"});
@@ -78,7 +94,7 @@ class Order {
     }
 
     static async check_status(req, res) {
-        const orderId = req.params.orderId;
+        const orderId = req.params.id;
         const order = await Orders.findOne({orderId});
         if (!order) {
             res.status(404).json({"message": "Order not found"});
@@ -98,3 +114,5 @@ class Order {
         }
     }
 }
+
+module.exports = Order;

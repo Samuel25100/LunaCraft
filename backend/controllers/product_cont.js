@@ -38,8 +38,8 @@ class Products_con {
     }
 
     static async get_product(req, res) {
-        const id = req.params.id;
-        const prod = Products.findOne({ userId: id });
+        const prodId = req.params.id;
+        const prod = await Products.findOne({ prodId });
         if (prod) {
             res.status(200).json({
                 "name": prod.name,
@@ -56,14 +56,24 @@ class Products_con {
     }
 
     static async update_prod(req, res) {
-        const id = req.params.id;
+        const prodId = req.params.id;
         const nw_info = req.body;
-        const prod = await Products.findOne({ id });
+        const prod = await Products.findOne({ prodId });
         if (prod) {
             try {
-                const new_prod = await Products.findByIdAndUpdate(
-                    id, { ...nw_info}, {new: true});
-                res.status(200).json({ new_prod});
+                const new_prod = await Products.findOneAndUpdate( { prodId } , { $set: {...nw_info}}, {new: true});
+                const filtered = {
+                    "prodId": new_prod.prodId, 
+                    "userId": new_prod.userId,
+                    "name": new_prod.name,
+                    "description": new_prod.description,
+                    "price": new_prod.price,
+                    "category": new_prod.category,
+                    "material": new_prod.material,
+                    "image": new_prod.image,
+                    "stock": new_prod.stock,
+                }
+                res.status(200).json({ ...filtered });
                 return;
             } catch (err) {
                 console.error("Inside updating product info:", err);
@@ -78,7 +88,7 @@ class Products_con {
         const prod = await Products.findOne({ id });
         if (prod) {
             try {
-                await Products.findByIdAndDelete(id);
+                await Products.findOneAndDelete({prodId: id});
                 res.status(200).json({"message": "Deleted succesfully"});
                 return;
             } catch (err) {
@@ -89,7 +99,8 @@ class Products_con {
     }
 
     static async get_allProd(req, res) {
-        
+        const filter = req.query;
+        return;
     }
 }
 

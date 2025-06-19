@@ -26,7 +26,7 @@ class Users_cont {
         const userId = uuidv4.v4().toString();
         /* JWT token */
         const accessToken = jwt.sign({ userId },
-            process.env.ACCESS_TOKEN, { expiresIn: '15m'});
+            process.env.ACCESS_TOKEN, { expiresIn: '1d'});
 
         const refreshToken = jwt.sign({ userId },
             process.env.REFRESH_TOKEN, { expiresIn: '7d'});
@@ -43,7 +43,7 @@ class Users_cont {
                 res.status(401).json({ message: "Wrong email or password" });
                 return;
             }
-            const accessToken = jwt.sign({ userId: user.userId}, process.env.ACCESS_TOKEN, { expiresIn: '15m'});
+            const accessToken = jwt.sign({ userId: user.userId}, process.env.ACCESS_TOKEN, { expiresIn: '1d'});
             const refreshToken = jwt.sign({ userId: user.userId }, process.env.REFRESH_TOKEN, { expiresIn: '7d'});
             res.status(200).json({ accessToken, refreshToken });
             return;   
